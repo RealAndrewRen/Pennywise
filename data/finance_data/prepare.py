@@ -130,6 +130,9 @@ LEAD_FALLBACK_DATE = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
+ASTERISK_EMPH_RE = re.compile(r"\*{1,3}[^*\n]{1,200}?\*{1,3}")
+LONE_ASTERISK_RE = re.compile(r"\s*\*\s*")
+
 # Bloomberg dataset
 PAT_BLOOMBERG_EMAIL = re.compile(r"""\b[A-Za-z0-9._%+-]+@bloomberg\.net\b""", re.IGNORECASE)
 
@@ -148,24 +151,56 @@ PAT_ASHRAQ_EMAIL_DIST = re.compile(r"""(?:^|\s)\bTo\s+be\s+included\s+in\s+the\s
 PAT_ASHRAQ_IN_MINUTES = re.compile(r"""\s+/\s+in\s+\d+\s+minutes\b""", re.IGNORECASE)
 PAT_ASHRAQ_UPDATED_HOURS = re.compile(r"""\s+/\s+Updated\s+\d+\s+hours\s+ago\b""", re.IGNORECASE)
 
+# ============================================================
+#                 NEW EXTRA AGGRESSIVE PATTERNS
+# ============================================================
+
+# Remove [text] used as bold markers
+BOLD_BRACKET_RE = re.compile(r"\[[^\]]+\]")
+
+# Bloomberg contact info removal:
+TRAIL_CONTACT_INFO = re.compile(
+    r"To\s+contact\s+(?:the\s+)?(?:reporter|editor)[^\.]+(?:\.)?",
+    re.IGNORECASE,
+)
+
+# Contributor lists:
+CONTRIB_LIST_RE = re.compile(
+    r"(?:[A-Z][a-z]+(?:\s[A-Z][a-z]+)?(?:,\s)?){2,}[A-Z][a-z]+(?:\s[A-Z][a-z]+)?\s+in\s+[A-Za-z]+(?:,\s[A-Z][a-z]+\s+in\s+[A-Za-z]+)*(?:;|\.)?",
+    re.IGNORECASE,
+)
+
+# Headlines, timestamps, Min Read, BRIEF-, Updated X minutes ago
+HEADLINE_TIME_RE = re.compile(
+    r"^\s*(Updated\s+\d+\s+\w+\s+ago.*|"
+    r"\d+\s+(Hours|Minutes)\s+Ago.*|"
+    r"\d{1,2}[:\.]?\d{0,2}\s*(AM|PM)\s*/\s*Updated.*|"
+    r"BRIEF-[^\n]+|"
+    r"\d{1,2}\s+Min\s+Read.*)$",
+    re.IGNORECASE | re.MULTILINE
+)
+
+# City dateline: NEW YORK -, LOS ANGELES -, PARIS -
+CITY_DATELINE_RE = re.compile(
+    r"^[A-Z][A-Z ]{2,30}\s*-\s*", re.MULTILINE
+)
+
 
 # ============================================================
-#              AGGRESSIVE CLEAN (MERGED)
+#                   MODIFIED aggressive_clean()
 # ============================================================
-
-def _split_sentences(text: str) -> List[str]:
-    pieces = re.split(r"(?<=[\.\?\!])\s+", text)
-    return [p.strip() for p in pieces if p and len(p.strip()) >= MIN_SENTENCE_CHARS]
-
 
 def aggressive_clean(raw: str) -> str:
     if not raw:
         return ""
 
     s = str(raw)
-
-    # Normalize whitespace
     s = s.replace("\r\n", "\n").replace("\r", "\n")
+    s = ASTERISK_EMPH_RE.sub(" ", s)
+    s = LONE_ASTERISK_RE.sub(" ", s)
+
+    # Remove [bold] formatting
+    s = BOLD_BRACKET_RE.sub(" ", s)
 
     # HTML removal
     s = HTML_TAG_RE.sub(" ", s)
@@ -180,6 +215,10 @@ def aggressive_clean(raw: str) -> str:
     s = URL_RE.sub(" ", s)
     s = PAT_ASHRAQ_LINKS.sub(" ", s)
 
+    # Remove headline/timestamp junk
+    s = HEADLINE_TIME_RE.sub(" ", s)
+    s = CITY_DATELINE_RE.sub(" ", s)
+
     # Lead removals
     for regex in [
         LEAD_DATE_TIME_UPDATED,
@@ -191,6 +230,12 @@ def aggressive_clean(raw: str) -> str:
 
     # Parentheticals
     s = REPORTING_EDITING_RE.sub(" ", s)
+
+    # Remove reporter/editor contact lines (Bloomberg style)
+    s = TRAIL_CONTACT_INFO.sub(" ", s)
+
+    # Remove contributor name chains
+    # s = CONTRIB_LIST_RE.sub(" ", s)
 
     # Ashraq patterns
     for regex in [
@@ -227,7 +272,7 @@ def aggressive_clean(raw: str) -> str:
     # Repeated punctuation
     s = REPEATED_PUNC_RE.sub(lambda m: m.group(1)[0], s)
 
-    # Cleanup whitespace
+    # Whitespace cleanup
     s = re.sub(r"[ \t]+", " ", s)
     s = s.replace("(Reuters)", " ")
     s = s.strip()
