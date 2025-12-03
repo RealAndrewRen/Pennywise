@@ -178,14 +178,25 @@ for ds_info in datasets:
     print(f"🪄 Formatting {ds_info['name']}...")
 
     for ex in tqdm(data, desc=f"Processing {ds_info['type']}"):
-        if ds_info["type"] == "sft":
+        # Joseph dataset: apply special cleaning
+        if ds_info["name"] == "Josephgflowers/Finance-Instruct-500k":
+            instr = clean_joseph_text(ex.get("user", ""))       # user column
+            resp = clean_joseph_text(ex.get("assistant", ""))   # assistant column
+            if instr and resp:
+                out = f"<user>\n{instr}\n</user>\n<assistant>\n{resp}\n</assistant>"
+            else:
+                out = None
+
+        # Other SFT datasets
+        elif ds_info["type"] == "sft":
             out = format_sft(ex)
-            if ds_info["name"] == "Josephgflowers/Finance-Instruct-500k":
-                text = clean_joseph_text(ex["text"])
+
         elif ds_info["type"] == "personal_finance":
             out = format_personal_finance(ex)
+
         elif ds_info["type"] == "reddit":
             out = format_reddit(ex)
+
         else:
             out = None
 
@@ -196,6 +207,7 @@ for ds_info in datasets:
     print(f"💾 Saved {txt_path}")
 
     all_datasets.append(Dataset.from_dict({"text": processed}))
+
 
 
 # ============================================================
