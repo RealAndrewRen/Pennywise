@@ -5,6 +5,7 @@ import numpy as np
 from datasets import load_dataset, concatenate_datasets, Dataset
 from transformers import AutoTokenizer
 import tiktoken
+from langdetect import detect, LangDetectException
 
 enc = tiktoken.get_encoding("gpt2")
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
@@ -56,6 +57,34 @@ SLUR_PATTERN = re.compile(
     re.IGNORECASE
 )
 
+HTML_PATTERN = re.compile(r"<.*?>")
+
+EMOJI_PATTERN = re.compile(
+    r"[\U0001F600-\U0001F64F"   # emoticons
+    r"\U0001F300-\U0001F5FF"    # symbols & pictographs
+    r"\U0001F680-\U0001F6FF"    # transport
+    r"\U0001F1E0-\U0001F1FF"    # flags
+    r"\U00002700-\U000027BF"    # dingbats
+    r"\U0001F900-\U0001F9FF"    # supplemental symbols
+    r"\U0001FA70-\U0001FAFF"    # symbols extended-A
+    r"\U00002500-\U00002BEF"    # misc symbols
+    r"]+", flags=re.UNICODE
+)
+
+UNICODE_JUNK = [
+    "\u200b", "\u200c", "\u200d", "\ufeff"
+]
+
+LATEX_PATTERN = re.compile(
+    r"(\\begin\{.*?\}|\\end\{.*?\}|\\[A-Za-z]+|\$.*?\$)",
+    re.DOTALL
+)
+
+def contains_latex(text):
+    if not isinstance(text, str):
+        return False
+    return bool(LATEX_PATTERN.search(text))
+
 def clean_joseph_text(text):
     # first run the general cleaning
     text = clean_text(text)
@@ -70,20 +99,32 @@ def clean_joseph_text(text):
     return text.strip()
 
 
+
 def clean_text(text):
+    """Improved cleaning + emoji removal."""
     if not text or not isinstance(text, str):
         return ""
 
-    # remove links and emails
-    text = re.sub(URL_PATTERN, "", text)
+    # Remove HTML tags
+    text = re.sub(HTML_PATTERN, " ", text)
 
-    # remove slurs
+    # Remove URLs and emails
+    text = re.sub(URL_PATTERN, " ", text)
+
+    # Remove emojis
+    text = re.sub(EMOJI_PATTERN, "", text)
+
+    # Remove profanity
     text = re.sub(SLUR_PATTERN, "[CLEANED]", text)
 
-    # remove repeated punctuation
+    # Normalize punctuation repeats
     text = re.sub(r"([!?.,])\1{2,}", r"\1", text)
 
-    # collapse whitespace
+    # Remove bad unicode
+    for junk in UNICODE_JUNK:
+        text = text.replace(junk, "")
+
+    # Normalize whitespace
     text = re.sub(r"\s+", " ", text)
 
     return text.strip()
@@ -108,40 +149,76 @@ def format_sft(example):
 
     if "instruction" in example and "output" in example:
         instr, resp = example["instruction"], example["output"]
-
     elif "user" in example and "assistant" in example:
         instr, resp = example["user"], example["assistant"]
 
-    if instr and resp:
-        instr = clean_text(instr)
-        resp = clean_text(resp)
-        return f"<user>\n{instr}\n</user>\n<assistant>\n{resp}\n</assistant>"
-    return None
+    if not instr or not resp:
+        return None
+
+    # Remove LaTeX-containing samples
+    if contains_latex(instr) or contains_latex(resp):
+        return None
+
+    instr = clean_text(instr)
+    resp = clean_text(resp)
+
+    return f"User: {instr}\nAssistant: {resp}"
+
+
+def is_english(text):
+    """Return True only if detected language is English."""
+    if not text or len(text.strip()) == 0:
+        return False
+    try:
+        return detect(text) == "en"
+    except LangDetectException:
+        return False
 
 
 def format_personal_finance(example):
     """
     context = user; chosen = assistant
-    Also strip Human:/Assistant:
+    Remove Human:/Assistant: prefixes and keep only English examples.
+    Format = User:\n...\nAssistant:\n...
     """
+
     if "context" in example and "chosen" in example:
         instr = remove_human_assistant_prefixes(clean_text(example["context"]))
-        resp = remove_human_assistant_prefixes(clean_text(example["chosen"]))
+        resp  = remove_human_assistant_prefixes(clean_text(example["chosen"]))
 
-        return f"<user>\n{instr}\n</user>\n<assistant>\n{resp}\n</assistant>"
+        # Skip non-English rows
+        if not (is_english(instr) and is_english(resp)):
+            return None
+
+        return (
+            f"User:\n{instr}\n"
+            f"Assistant:\n{resp}"
+        )
+
     return None
 
 
 def format_reddit(example):
     """
     selftext = user; body = assistant
+    Keep only English rows.
     """
+
     if "selftext" in example and "body" in example:
         instr = clean_text(example["selftext"])
-        resp = clean_text(example["body"])
+        resp  = clean_text(example["body"])
 
-        if instr and resp:
-            return f"<user>\n{instr}\n</user>\n<assistant>\n{resp}\n</assistant>"
+        # Skip empty or non-English rows
+        if not instr or not resp:
+            return None
+        if not (is_english(instr) and is_english(resp)):
+            return None
+
+        return (
+            f"User:\n{instr}\n"
+            f"Assistant:\n{resp}"
+        )
+
     return None
 
 
