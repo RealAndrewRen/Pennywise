@@ -10,7 +10,7 @@
 | Nailya Alimova   | @jramirez     | Data collection, exploratory data analysis (EDA), dataset documentation  |
 | Anjali Amin     | @aminahassan  | Data preprocessing, feature engineering, data validation                 |
 | Marvin Hoang      | @pmehta       | Model selection, hyperparameter tuning, model training and optimization  |
-| Naisha Mistry       | @chrispark    | Model evaluation, performance analysis, results interpretation           |
+| Naisha Mistry       | @naishahmistry    | Model evaluation, performance analysis, results interpretation           |
 
 ---
 
@@ -65,16 +65,38 @@
 
 ## 🧠 **Model Development**
 
-**You might consider describing the following (as applicable):**
+### Base Model Architecture
+- Base model: GPT-2 Small (123.65M parameters)
+- Rationale: lightweight, fast to train, well-documented for domain adaptation, and ideal for small applications or teaching
 
-* Model(s) used (e.g., CNN with transfer learning, regression models)
-* Feature selection and Hyperparameter tuning strategies
-* Training setup (e.g., % of data for training/validation, evaluation metric, baseline performance)
+### Pre-Training for Domain Adaptation
+**Goal: Teach the base GPT-2 model to understand fundamental financial concepts and build general domain knowledge around finance/economics**
+- Initialized from the GPT-2 Small (123.65M) pretrained checkpoint
+- Trained on the processed financial pre-training datasets mentioned above
+- Hyperparameters Tuned
+  - Number of training iterations: 6k, 20k, 50k
+- Evaluation Metrics
+  - Coherence, Accuracy, and Relevance
+  - All metrics were measured by manually evaluating responses to the following prompt: “Why can’t we print more money? Because inflation…”
 
+### Supervised Fine-Tuning (SFT)
+**Goal: Enable chatbot-style functionality by training the model to provide structured, straightforward, and easy-to-understand answers to personal finance questions**
+- Fine-tuned by initializing from the 20k-iteration checkpoint from pre-training
+- Trained on the processed SFT datasets mentioned agove
+- Hyperparameters Tuned:
+  - Number of training iterations: 4.3k, 10k
+- Evaluation Metrics
+  - Coherence, Accuracy, and Relevance
+  - All metrics were measured by manually evaluating responses to the following prompt:  “What are stocks and why should I start trading them?”
 
 ---
 
 ## 📈 **Results & Key Findings**
+
+### Pre-Training Results
+
+
+### SFT Results
 
 **You might consider describing the following (as applicable):**
 
