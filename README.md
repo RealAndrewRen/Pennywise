@@ -16,12 +16,13 @@
 
 ## 🎯 **Project Highlights**
 
-**Example:**
+- Developed a machine learning model using a GPT-style transformer fine-tuned with supervised instruction data to address the challenge of building a finance-domain conversational assistant.
 
-- Developed a machine learning model using `[model type/technique]` to address `[challenge project task]`.
-- Achieved `[key metric or result]`, demonstrating `[value or impact]` for `[host company]`.
-- Generated actionable insights to inform business decisions at `[host company or stakeholders]`.
-- Implemented `[specific methodology]` to address industry constraints or expectations.
+- Achieved substantial improvements in domain-specific response quality compared to the base model, demonstrating strong applicability for finance-related support.
+
+- Generated actionable insights by analyzing conversation patterns and user intents, helping inform feature planning and product direction.
+
+- Implemented a structured SFT (Supervised Fine-Tuning) pipeline optimized for small-to-medium datasets, addressing constraints around limited compute and reproducibility expectations.
 
 ---
 
