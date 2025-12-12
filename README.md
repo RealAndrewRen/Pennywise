@@ -170,7 +170,7 @@ Stock trading can be challenging and involves many different types of investment
 
 | Metric      | Rating | Notes |
 |-------------|--------|-------|
-| **Coherence** | 3/5 | Has a conversational and logical flow of ideas that answers the prompt, Does not fully address second part of user's prompt, Occasionally drifts in grammar or provides circular reasoning|
+| **Coherence** | 3/5 | Has a conversational and logical flow of ideas that answers the prompt, Occasionally drifts in grammar or provides circular reasoning, Does not fully address the second half of the user's prompt|
 | **Accuracy**  | 4/5 | Generates realistic and accurate tips related to the prompt based on the second part of the user’s question |
 | **Relevance** | 5/5 | Information does not stray from the prompt’s topic |
 
