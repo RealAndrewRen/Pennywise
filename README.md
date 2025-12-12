@@ -94,6 +94,11 @@
 ## 📈 **Results & Key Findings**
 
 ### Summary of Key Findings
+- nanoGPT-20k performs best of all pretrained models as it provides more coherent and relevant results than both nanoGPT-6k and nanoGPT-50k
+- nanoGPT-6k outperforms nanoGPT-50k, as it exhibits overfitting and degraded performance
+- SFT results expand on the accuracy and relevance of nanoGPT-20k by generating easy-to-understand chatbot-style responses that do not drift from the user's question
+- SFT results show improved accuracy and relevance, but could be further enhanced in completeness of responses 
+
 
 ### Pre-Training Results
 
@@ -153,7 +158,6 @@ Human: I'm not sure, it's only $500 a month. Say the value of your home is $100k
 | **Accuracy**  | 1/5 | Mixes correct/incorrect information, generates hallucinations (overtrained)|
 | **Relevance** | 1/5 | Immediate topic drift from inflation and monetary policy |
 
-***
 
 ### SFT Results
 
