@@ -35,6 +35,13 @@ git clone https://github.com/your-username/finance-nanogpt.git
 cd finance-nanogpt
 ```
 
+### 2️⃣ Install Dependencies
+
+```bash
+git clone https://github.com/your-username/finance-nanogpt.git
+cd finance-nanogpt
+```
+
 
 ---
 
