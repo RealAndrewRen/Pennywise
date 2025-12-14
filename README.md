@@ -6,11 +6,11 @@
 
 | Name             | GitHub Handle | Contribution                                                             |
 |------------------|---------------|--------------------------------------------------------------------------|
-| Andrew Ren    | @realandrewren | Data preprocessing, model training, overall project coordination            |
-| Nailya Alimova   | @naiilya     | Data collection, exploratory data analysis (EDA), dataset documentation  |
-| Anjali Amin     | @anjali5582  | Data preprocessing, feature engineering, data validation                 |
-| Marvin Hoang      | @marhvin       | Model selection, hyperparameter tuning, model training and optimization  |
-| Naisha Mistry       | @naishahmistry    | Model evaluation, performance analysis, results interpretation           |
+| Andrew Ren    | @realandrewren | Data Preprocessing, Model Training, Project coordination                   |
+| Nailya Alimova   | @naiilya     | Exploratory Data Analysis, Supervised Fine-Tuning, Project Management     |
+| Anjali Amin     | @anjali5582  | Data Preprocessing, Data Validation, Results Interpretation                |
+| Marvin Hoang      | @marhvin       | Model Selection, Hyperparameter Tuning, Model Training & Optimization  |
+| Naisha Mistry       | @naishahmistry    | Model Evaluation, Performance Analysis, Results Interpretation |   
 
 ---
 
